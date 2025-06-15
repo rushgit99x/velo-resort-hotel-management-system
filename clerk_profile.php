@@ -63,7 +63,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $clerk_id = filter_var($_POST['clerk_id'] ?? 0, FILTER_VALIDATE_INT);
 
     // Validation
-    if (empty($name) || empty($email)) {
+    if ($action === 'delete') {
+        if (!$clerk_id) {
+            $error_message = "Invalid clerk ID for deletion.";
+            $action = 'list';
+        } else {
+            try {
+                // Verify clerk exists and belongs to the manager's branch
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND role = 'clerk' AND branch_id = ?");
+                $stmt->execute([$clerk_id, $branch_id]);
+                if (!$stmt->fetch()) {
+                    $error_message = "Clerk not found or does not belong to your branch.";
+                } else {
+                    // Perform deletion
+                    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'clerk' AND branch_id = ?");
+                    $stmt->execute([$clerk_id, $branch_id]);
+                    
+                    if ($stmt->rowCount() > 0) {
+                        $success_message = "Clerk deleted successfully.";
+                    } else {
+                        $error_message = "Failed to delete clerk. Please try again.";
+                    }
+                    
+                    // Refresh clerks list
+                    $stmt = $pdo->prepare("SELECT id, name, email, created_at FROM users WHERE role = 'clerk' AND branch_id = ?");
+                    $stmt->execute([$branch_id]);
+                    $clerks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+                $action = 'list';
+            } catch (PDOException $e) {
+                $error_message = "Error deleting clerk: " . $e->getMessage();
+                $action = 'list';
+            }
+        }
+    } elseif (empty($name) || empty($email)) {
         $error_message = "Name and email are required.";
     } elseif ($action === 'add' && empty($password)) {
         $error_message = "Password is required for new clerks.";
@@ -71,9 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_message = "Invalid email format.";
     } elseif ($action === 'edit' && !$clerk_id) {
         $error_message = "Invalid clerk ID for editing.";
-        $action = 'list';
-    } elseif ($action === 'delete' && !$clerk_id) {
-        $error_message = "Invalid clerk ID for deletion.";
         $action = 'list';
     } else {
         try {
@@ -116,23 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $pdo->prepare("SELECT id, name, email, created_at FROM users WHERE role = 'clerk' AND branch_id = ?");
                     $stmt->execute([$branch_id]);
                     $clerks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                }
-            } elseif ($action === 'delete' && $clerk_id) {
-                try {
-                    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ? AND role = 'clerk' AND branch_id = ?");
-                    $stmt->execute([$clerk_id, $branch_id]);
-                    if ($stmt->rowCount() === 0) {
-                        $error_message = "Clerk not found or could not be deleted.";
-                    } else {
-                        $success_message = "Clerk deleted successfully.";
-                    }
-                    $action = 'list';
-                    // Refresh clerks list
-                    $stmt = $pdo->prepare("SELECT id, name, email, created_at FROM users WHERE role = 'clerk' AND branch_id = ?");
-                    $stmt->execute([$branch_id]);
-                    $clerks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                } catch (PDOException $e) {
-                    $error_message = "Error deleting clerk: " . $e->getMessage();
                 }
             }
         } catch (PDOException $e) {
@@ -203,10 +216,10 @@ include 'templates/header.php';
                         <span>Manage Clerks</span>
                     </a>
                 </li>
-                     <li>
+                <li>
                     <a href="manager_settings.php" class="sidebar__link">
                         <i class="ri-settings-3-line"></i>
-                        <span>Profile</span>
+                        <span>Profile</</span>
                     </a>
                 </li>
                 <li>
@@ -286,10 +299,10 @@ include 'templates/header.php';
                                         <td><?php echo htmlspecialchars($clerk['created_at']); ?></td>
                                         <td>
                                             <a href="clerk_profile.php?action=edit&clerk_id=<?php echo $clerk['id']; ?>" class="btn btn--primary">Edit</a>
-                                            <form method="POST" action="clerk_profile.php" style="display: inline;">
+                                            <form method="POST" action="clerk_profile.php" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this clerk?');">
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="clerk_id" value="<?php echo $clerk['id']; ?>">
-                                                <button type="submit" class="btn btn--danger" onclick="return confirm('Are you sure you want to delete this clerk?');">Delete</button>
+                                                <button type="submit" class="btn btn--danger">Delete</button>
                                             </form>
                                         </td>
                                     </tr>

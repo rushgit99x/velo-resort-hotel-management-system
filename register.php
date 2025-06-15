@@ -11,35 +11,38 @@ require 'lib/PHPMailer/src/Exception.php';
 require 'lib/PHPMailer/src/PHPMailer.php';
 require 'lib/PHPMailer/src/SMTP.php';
 
-// require 'vendor/autoload.php'; // Adjust path if PHPMailer is installed via Composer
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = sanitize($_POST['name']);
     $email = sanitize($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $password = $_POST['password'];
     $role = $_POST['role'];
 
+    // Password validation
+    $password_pattern = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/";
     if (!validateEmail($email)) {
         $error = "Invalid email format.";
     } elseif ($role !== 'customer' && $role !== 'travel_company') {
         $error = "Invalid role selected.";
+    } elseif (!preg_match($password_pattern, $password)) {
+        $error = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).";
     } else {
         try {
-            // Insert user into database
+            // Hash password and insert user into database
+            $password_hashed = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$name, $email, $password, $role]);
+            $stmt->execute([$name, $email, $password_hashed, $role]);
 
             // Initialize PHPMailer
             $mail = new PHPMailer(true);
             try {
                 // Server settings
                 $mail->isSMTP();
-                $mail->Host = 'smtp.gmail.com'; // Replace with your SMTP host
+                $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'rushbiz99x@gmail.com'; // Replace with your SMTP username
-                $mail->Password = 'ngok qakc yqun dvfp'; // Replace with your SMTP password
+                $mail->Username = 'rushbiz99x@gmail.com';
+                $mail->Password = 'ngok qakc yqun dvfp';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                $mail->Port = 587; // Adjust port as needed (587 for TLS, 465 for SSL)
+                $mail->Port = 587;
 
                 // Recipients
                 $mail->setFrom('rushbiz99x@gmail.com', 'Velo Resort & Spa');
@@ -48,23 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Content
                 $mail->isHTML(true);
                 $mail->Subject = 'Welcome to Velo Resort & Spa!';
-                // $mail->Body = "
-                //     <h2>Welcome, $name!</h2>
-                //     <p>Thank you for registering with Velo Resort & Spa. Your account has been successfully created.</p>
-                //     <p><strong>Account Type:</strong> " . ucfirst($role) . "</p>
-                //     <p>You can now log in to your account and start exploring our services:</p>
-                //     <p><a href='http://yourdomain.com/login.php' style='color: #e91e63; text-decoration: none; font-weight: bold;'>Login to Your Account</a></p>
-                //     <p>If you have any questions, feel free to contact us at support@veloresort.com.</p>
-                //     <p>Best regards,<br>The Velo Resort & Spa Team</p>
-                // ";
-
                 $mail->Body = "
                     <!DOCTYPE html>
                     <html lang='en'>
                     <head>
                         <meta charset='UTF-8'>
                         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-                        <title>Welcome to Velo Resort &amp; Spa</title>
+                        <title>Welcome to Velo Resort & Spa</title>
                         <style>
                             body {
                                 margin: 0;
@@ -230,13 +223,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class='email-container'>
                             <div class='header'>
                                 <div class='spa-icon'>🌺</div>
-                                <h1>Welcome to Velo Resort &amp; Spa</h1>
+                                <h1>Welcome to Velo Resort & Spa</h1>
                             </div>
                             
                             <div class='content'>
                                 <p class='welcome-message'>Hello <strong>$name</strong>!</p>
                                 
-                                <p>Thank you for choosing <strong class='brand-name'>Velo Resort &amp; Spa</strong>. Your account has been successfully created and you're now part of our exclusive community.</p>
+                                <p>Thank you for choosing <strong class='brand-name'>Velo Resort & Spa</strong>. Your account has been successfully created and you're now part of our exclusive community.</p>
                                 
                                 <div class='account-info'>
                                     <p class='account-type'><strong>Account Type:</strong> " . ucfirst($role) . "</p>
@@ -262,13 +255,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                             
                             <div class='footer'>
-                                <p class='signature'>With warm regards,<br><span class='brand-name'>The Velo Resort &amp; Spa Team</span></p>
+                                <p class='signature'>With warm regards,<br><span class='brand-name'>The Velo Resort & Spa Team</span></p>
                             </div>
                         </div>
                     </body>
                     </html>
                 ";
-
 
                 $mail->AltBody = "Welcome, $name!\n\nThank you for registering with Velo Resort & Spa. Your account has been successfully created.\n\nAccount Type: " . ucfirst($role) . "\n\nYou can now log in to your account at: http://yourdomain.com/login.php\n\nIf you have any questions, contact us at support@veloresort.com.\n\nBest regards,\nThe Velo Resort & Spa Team";
 
@@ -303,7 +295,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         overflow: auto;
     }
 
-    /* Background decoration */
     body::before {
         content: '';
         position: fixed;
@@ -509,7 +500,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     .form-input, .form-select {
         width: 100%;
-        padding: 1rem 1.25rem;
+        padding: 1rem 3rem 1rem 1.25rem;
         border: 2px solid #e5e7eb;
         border-radius: 12px;
         font-size: 1rem;
@@ -532,6 +523,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     .form-select {
         cursor: pointer;
+    }
+
+    .password-container {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        color: #6b7280;
+        transition: color 0.3s ease;
+    }
+
+    .toggle-password:hover {
+        color: #e91e63;
+    }
+
+    .password-requirements {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .password-requirements li.valid {
+        color: #2e7d32;
     }
 
     .register-button {
@@ -802,8 +827,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </svg>
                     Password
                 </label>
-                <input type="password" id="password" name="password" class="form-input" required 
-                       placeholder="Create a secure password">
+                <div class="password-container">
+                    <input type="password" id="password" name="password" class="form-input" required 
+                           placeholder="Create a secure password">
+                    <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                        <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <div class="form-group">
@@ -864,8 +897,9 @@ function validateRegisterForm() {
         return false;
     }
     
-    if (password.length < 6) {
-        alert('Password must be at least 6 characters long.');
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordPattern.test(password)) {
+        alert('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).');
         return false;
     }
     
@@ -874,6 +908,52 @@ function validateRegisterForm() {
     
     return true;
 }
+
+// Real-time password validation
+const passwordInput = document.getElementById('password');
+const togglePassword = document.querySelector('.toggle-password');
+const eyeIcon = document.getElementById('eye-icon');
+
+passwordInput.addEventListener('input', function() {
+    const password = this.value;
+    
+    // Check length
+    document.getElementById('length').classList.toggle('valid', password.length >= 8);
+    
+    // Check uppercase
+    document.getElementById('uppercase').classList.toggle('valid', /[A-Z]/.test(password));
+    
+    // Check lowercase
+    document.getElementById('lowercase').classList.toggle('valid', /[a-z]/.test(password));
+    
+    // Check number
+    document.getElementById('number').classList.toggle('valid', /\d/.test(password));
+    
+    // Check special character
+    document.getElementById('special').classList.toggle('valid', /[@$!%*?&]/.test(password));
+});
+
+// Toggle password visibility
+let isPasswordVisible = false;
+togglePassword.addEventListener('click', function() {
+    isPasswordVisible = !isPasswordVisible;
+    passwordInput.type = isPasswordVisible ? 'text' : 'password';
+    eyeIcon.innerHTML = isPasswordVisible ? 
+        `<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><path d="M2 2l20 20"/><path d="M6.5 6.5l11 11"/>` :
+        `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+});
+
+// Show password briefly while typing
+let typingTimer;
+passwordInput.addEventListener('keydown', function() {
+    clearTimeout(typingTimer);
+    if (!isPasswordVisible) {
+        passwordInput.type = 'text';
+        typingTimer = setTimeout(() => {
+            passwordInput.type = 'password';
+        }, 500);
+    }
+});
 
 document.querySelectorAll('.form-input').forEach(input => {
     input.addEventListener('focus', function() {

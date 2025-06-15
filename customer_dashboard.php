@@ -125,6 +125,12 @@ include 'templates/header.php';
                         <span>Billing & Payments</span>
                     </a>
                 </li>
+                <!-- <li>
+                    <a href="check_in_out.php" class="sidebar__link">
+                        <i class="ri-hotel-line"></i>
+                        <span>Check-In/Out</span>
+                    </a>
+                </li> -->
                 <li>
                     <a href="customer_profile.php" class="sidebar__link">
                         <i class="ri-settings-3-line"></i>
@@ -195,7 +201,7 @@ include 'templates/header.php';
             </div>
 
             <!-- Quick Actions -->
-            <div class="quick-actions">
+            <!-- <div class="quick-actions">
                 <h3 class="section__subheader">Quick Actions</h3>
                 <div class="action__buttons">
                     <a href="make_reservation.php" class="action__button">New Reservation</a>
@@ -203,7 +209,7 @@ include 'templates/header.php';
                     <a href="customer_additional_services.php" class="action__button">Request Service</a>
                     <a href="billing_payments.php" class="action__button">Pay Now</a>
                 </div>
-            </div>
+            </div> -->
         </section>
     </main>
 </div>
@@ -351,7 +357,6 @@ include 'templates/header.php';
     justify-content: center;
 }
 
-.card__content h3 {
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

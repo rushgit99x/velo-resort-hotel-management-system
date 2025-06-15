@@ -190,7 +190,7 @@ include 'templates/header.php';
                 <li><a href="#contact">Contact</a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <?php if ($_SESSION['role'] == 'super_admin'): ?>
-                        <li><a href="admin_portal.php">Admin Portal</a></li>
+                        <li><a href="admin_dashboard.php">Admin Panel</a></li>
                     <?php elseif ($_SESSION['role'] == 'manager'): ?>
                         <li><a href="manager/manager_dashboard.php">Manager Portal</a></li>
                     <?php else: ?>
@@ -390,7 +390,7 @@ include 'templates/header.php';
                         <h4><?php echo htmlspecialchars($room_type['name']); ?></h4>
                         <p><?php echo htmlspecialchars($room_type['description'] ?? 'No description available.'); ?></p>
                         <h5>Starting from <span>$<?php echo number_format($room_type['base_price'], 2); ?>/night</span></h5>
-                        <a href="book_room.php?room_type_id=<?php echo $room_type['id']; ?>" class="btn">Book Now</a>
+                        <a href="login.php?room_type_id=<?php echo $room_type['id']; ?>" class="btn">Book Now</a>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -449,7 +449,7 @@ include 'templates/header.php';
         <div class="explore__content">
             <p>10th MAR 2025</p>
             <h4>A New Menu Is Available In Our Hotel.</h4>
-            <a href="#" class="btn">Continue</a>
+            <a href="login.php" class="btn">Continue</a>
         </div>
     </div>
 </section>
@@ -467,14 +467,13 @@ include 'templates/header.php';
     <div class="footer__col">
         <h4>QUICK LINKS</h4>
         <ul class="footer__links">
-            <li><a href="#">Browse Destinations</a></li>
-            <li><a href="#">Special Offers & Packages</a></li>
-            <li><a href="#">Room Types & Amenities</a></li>
-            <li><a href="#">Customer Reviews & Ratings</a></li>
-            <li><a href="#">Travel Tips & Guides</a></li>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#explore">Explore</a></li>
+            <li><a href="#contact">Contact</a></li>
         </ul>
     </div>
-    <div class="footer__col">
+    <!-- <div class="footer__col">
         <h4>OUR SERVICES</h4>
         <ul class="footer__links">
             <li><a href="#">Concierge Assistance</a></li>
@@ -482,7 +481,7 @@ include 'templates/header.php';
             <li><a href="#">Airport Transfers</a></li>
             <li><a href="#">Wellness & Recreation</a></li>
         </ul>
-    </div>
+    </div> -->
     <div class="footer__col">
         <h4>CONTACT US</h4>
         <ul class="footer__links">

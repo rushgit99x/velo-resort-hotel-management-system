@@ -61,6 +61,15 @@ try {
 include 'templates/header.php';
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
 <div class="dashboard__container">
     <aside class="sidebar" id="sidebar">
         <div class="sidebar__header">
@@ -150,6 +159,9 @@ include 'templates/header.php';
 
     <main class="dashboard__content">
         <header class="dashboard__header">
+            <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle">
+                <i class="ri-menu-line"></i>
+            </button>
             <h1 class="section__header">Super Admin Dashboard</h1>
             <div class="user__info">
                 <span>Welcome, <?php echo htmlspecialchars($_SESSION['username'] ?? 'Admin'); ?></span>
@@ -230,18 +242,187 @@ include 'templates/header.php';
 </div>
 
 <style>
-/* Styles for the dashboard */
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Dashboard Container */
+.dashboard__container {
+    display: flex;
+    min-height: 100vh;
+    background: #f3f4f6;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    background: #000000;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(0);
+}
+
+.sidebar.collapsed {
+    transform: translateX(-250px);
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-250px);
+    }
+    .sidebar.collapsed {
+        transform: translateX(-250px);
+    }
+    .sidebar:not(.collapsed) {
+        transform: translateX(0);
+    }
+}
+
+.sidebar__header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #333333;
+}
+
+.sidebar__logo {
+    width: 40px;
+    height: 40px;
+    margin-right: 0.5rem;
+}
+
+.sidebar__title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.sidebar__toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: auto;
+    font-size: 1.5rem;
+    color: #3b82f6;
+}
+
+.sidebar__nav {
+    padding: 1rem 0;
+}
+
+.sidebar__links {
+    list-style: none;
+}
+
+.sidebar__link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background 0.2s ease;
+}
+
+.sidebar__link:hover {
+    background:rgba(232,37,116,255);
+}
+
+.sidebar__link.active {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.sidebar__link i {
+    font-size: 1.25rem;
+    margin-right: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .sidebar__title,
+    .sidebar__link span {
+        display: inline;
+    }
+    .sidebar__logo {
+        margin-right: 0.5rem;
+    }
+}
+
+/* Main Content */
+.dashboard__content {
+    margin-left: 250px;
+    padding: 1.5rem;
+    flex-grow: 1;
+    transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .dashboard__content {
+        margin-left: 0;
+    }
+}
+
+/* Header */
+.dashboard__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.mobile-sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #3b82f6;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.section__header {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.user__info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user__avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+}
+
+/* Overview Section */
+.section__subheader {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
 .overview__cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 .overview__card {
     background: white;
-    padding: 2rem;
-    border-radius: 12px;
+    padding: 1rem;
+    border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
@@ -255,54 +436,149 @@ include 'templates/header.php';
 }
 
 .card__icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: #3b82f6;
     background: #eff6ff;
-    padding: 1rem;
+    padding: 0.75rem;
     border-radius: 50%;
-    min-width: 60px;
-    height: 60px;
+    min-width: 50px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .card__content h3 {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #6b7280;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .card__content p {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #1f2937;
-}
-
-.section__subheader {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1rem;
 }
 
 .dashboard__section.active {
     display: block;
 }
 
-/* Sidebar styles */
-.sidebar__link.active {
-    background: #3b82f6;
-    color: white;
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .mobile-sidebar-toggle {
+        display: block;
+    }
+
+    .sidebar__toggle {
+        display: none;
+    }
+
+    .overview__cards {
+        grid-template-columns: 1fr;
+    }
+
+    .section__header {
+        font-size: 1.5rem;
+    }
+
+    .section__subheader {
+        font-size: 1.2rem;
+    }
+
+    .overview__card {
+        padding: 1rem;
+    }
+
+    .card__icon {
+        font-size: 1.5rem;
+        min-width: 40px;
+        height: 40px;
+        padding: 0.5rem;
+    }
+
+    .card__content h3 {
+        font-size: 0.85rem;
+    }
+
+    .card__content p {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard__content {
+        padding: 1rem;
+    }
+
+    .dashboard__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .user__info {
+        font-size: 0.9rem;
+    }
+
+    .user__avatar {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('sidebar-toggle')?.addEventListener('click', function() {
-        document.getElementById('sidebar').classList.toggle('collapsed');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+
+    // Toggle sidebar function
+    function toggleSidebar() {
+        sidebar.classList.toggle('collapsed');
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        // Update icons
+        sidebarToggle.querySelector('i').classList.toggle('ri-menu-fold-line', !isCollapsed);
+        sidebarToggle.querySelector('i').classList.toggle('ri-menu-unfold-line', isCollapsed);
+        mobileSidebarToggle.querySelector('i').classList.toggle('ri-menu-line', isCollapsed);
+        mobileSidebarToggle.querySelector('i').classList.toggle('ri-close-line', !isCollapsed);
+        // Adjust margin-left for content when sidebar is visible on mobile
+        const dashboardContent = document.querySelector('.dashboard__content');
+        if (window.innerWidth <= 768) {
+            dashboardContent.style.marginLeft = isCollapsed ? '0' : '250px';
+        }
+    }
+
+    // Event listeners for both toggles
+    sidebarToggle?.addEventListener('click', toggleSidebar);
+    mobileSidebarToggle?.addEventListener('click', toggleSidebar);
+
+    // Auto-collapse sidebar on mobile and set initial state
+    if (window.innerWidth <= 768) {
+        sidebar.classList.add('collapsed');
+        mobileSidebarToggle.querySelector('i').classList.add('ri-menu-line');
+        mobileSidebarToggle.querySelector('i').classList.remove('ri-close-line');
+        document.querySelector('.dashboard__content').style.marginLeft = '0';
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.add('collapsed');
+            mobileSidebarToggle.querySelector('i').classList.add('ri-menu-line');
+            mobileSidebarToggle.querySelector('i').classList.remove('ri-close-line');
+            document.querySelector('.dashboard__content').style.marginLeft = '0';
+        } else {
+            sidebar.classList.remove('collapsed');
+            mobileSidebarToggle.querySelector('i').classList.add('ri-menu-line');
+            mobileSidebarToggle.querySelector('i').classList.remove('ri-close-line');
+            document.querySelector('.dashboard__content').style.marginLeft = '250px';
+        }
     });
 });
 </script>
 
 <?php include 'templates/footer.php'; ?>
+</body>
+</html>

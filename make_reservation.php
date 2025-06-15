@@ -21,7 +21,7 @@ $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and validate input
     $branch_id = filter_input(INPUT_POST, 'branch_id', FILTER_VALIDATE_INT);
-    $room_type = filter_input(INPUT_POST, 'room_type');
+    $room_type = filter_input(INPUT_POST, 'room_type', FILTER_SANITIZE_SPECIAL_CHARS);
     $check_in_date = filter_input(INPUT_POST, 'check_in_date', FILTER_DEFAULT);
     $check_out_date = filter_input(INPUT_POST, 'check_out_date', FILTER_DEFAULT);
     $occupants = filter_input(INPUT_POST, 'occupants', FILTER_VALIDATE_INT);
@@ -36,9 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$branch_id) {
         $errors[] = "Please select a valid branch.";
     }
-    //if (!in_array($room_type, ['single', 'double', 'suite'])) {
-    //    $errors[] = "Please select a valid room type.";
-    //}
+    if (!in_array($room_type, ['single', 'double', 'suite'])) {
+        $errors[] = "Please select a valid room type.";
+    }
     if (!$check_in_date || !DateTime::createFromFormat('Y-m-d', $check_in_date)) {
         $errors[] = "Please provide a valid check-in date.";
     }
