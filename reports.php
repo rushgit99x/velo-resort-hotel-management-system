@@ -44,7 +44,7 @@ try {
         GROUP BY b.id, b.name
         ORDER BY b.name
     ");
-    $bookings_by_branch = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $bookings_by_branch = $stmt->fetchAll(PDO::FETCH_ASSOC);//Tells PDO to return each row as an associative array (column names as keys, no numeric keys).
 
     // Detailed bookings
     $stmt = $pdo->query("

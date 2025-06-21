@@ -24,6 +24,7 @@ $total_customers = 0;
 $total_travel_companies = 0;
 $total_room_types = 0;
 
+//PHP Data Objects
 try {
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM branches");
     $total_branches = $stmt->fetch(PDO::FETCH_ASSOC)['count'] ?? 0;
