@@ -18,35 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['create_branch'])) {
     $branch_name = sanitize($_POST['branch_name']);
     $location = sanitize($_POST['location']);
     try {
-        // Check if branch name already exists
-        $check_stmt = $pdo->prepare("SELECT COUNT(*) FROM branches WHERE name = ?");
-        $check_stmt->execute([$branch_name]);
-        if ($check_stmt->fetchColumn() > 0) {
-            $error = "Branch name already exists!";
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO branches (name, location) VALUES (?, ?)");
-            $stmt->execute([$branch_name, $location]);
-            $success = "Branch created successfully!";
-        }
+        $stmt = $pdo->prepare("INSERT INTO branches (name, location) VALUES (?, ?)");
+        $stmt->execute([$branch_name, $location]);
+        $success = "Branch created successfully!";
     } catch (PDOException $e) {
         $error = "Error creating branch: " . $e->getMessage();
-    }
-}
-
-// Handle AJAX request for branch name validation
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'check_branch_name') {
-    $branch_name = sanitize($_POST['branch_name']);
-    try {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM branches WHERE name = ?");
-        $stmt->execute([$branch_name]);
-        $count = $stmt->fetchColumn();
-        header('Content-Type: application/json');
-        echo json_encode(['exists' => $count > 0]);
-        exit();
-    } catch (PDOException $e) {
-        header('Content-Type: application/json');
-        echo json_encode(['error' => 'Database error']);
-        exit();
     }
 }
 
@@ -178,17 +154,16 @@ include 'templates/header.php';
         <section class="dashboard__section active">
             <h2 class="section__subheader">Create New Branch</h2>
             <div class="form__container">
-                <form method="POST" class="admin__form" id="create-branch-form">
+                <form method="POST" class="admin__form">
                     <div class="form__group">
                         <label for="branch_name" class="form__label">Branch Name</label>
                         <input type="text" id="branch_name" name="branch_name" class="form__input" required>
-                        <span id="branch_name_error" class="error-message" style="color: #991b1b; font-size: 0.85rem; margin-top: 0.25rem; display: none;"></span>
                     </div>
                     <div class="form__group">
                         <label for="location" class="form__label">Location</label>
                         <input type="text" id="location" name="location" class="form__input" required>
                     </div>
-                    <button type="submit" name="create_branch" class="btn btn--primary" id="submit-btn" disabled>
+                    <button type="submit" name="create_branch" class="btn btn--primary">
                         <i class="ri-add-line"></i>
                         Create Branch
                     </button>
@@ -375,10 +350,6 @@ include 'templates/header.php';
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.form__input.error {
-    border-color: #991b1b;
-}
-
 .btn {
     padding: 0.75rem 1.5rem;
     border: none;
@@ -401,11 +372,6 @@ include 'templates/header.php';
 .btn--primary:hover {
     background: #2563eb;
     transform: translateY(-1px);
-}
-
-.btn--primary:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
 }
 
 .alert {
@@ -537,12 +503,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-    const form = document.getElementById('create-branch-form');
-    const branchNameInput = document.getElementById('branch_name');
-    const branchNameError = document.getElementById('branch_name_error');
-    const submitBtn = document.getElementById('submit-btn');
-    
-    let isBranchNameValid = false;
 
     // Toggle sidebar function
     function toggleSidebar() {
@@ -596,92 +556,6 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => alert.remove(), 300);
         }, 5000);
     });
-
-    // Branch name validation
-    async function validateBranchName(name) {
-        if (!name.trim()) {
-            branchNameError.textContent = 'Branch name is required';
-            branchNameError.style.display = 'block';
-            branchNameInput.classList.add('error');
-            isBranchNameValid = false;
-            updateSubmitButton();
-            return;
-        }
-
-        try {
-            const response = await fetch('create_branch.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=check_branch_name&branch_name=${encodeURIComponent(name)}`
-            });
-            
-            const data = await response.json();
-            
-            if (data.error) {
-                branchNameError.textContent = 'Error checking branch name';
-                branchNameError.style.display = 'block';
-                branchNameInput.classList.add('error');
-                isBranchNameValid = false;
-            } else if (data.exists) {
-                branchNameError.textContent = 'Branch name already exists';
-                branchNameError.style.display = 'block';
-                branchNameInput.classList.add('error');
-                isBranchNameValid = false;
-            } else {
-                branchNameError.style.display = 'none';
-                branchNameInput.classList.remove('error');
-                isBranchNameValid = true;
-            }
-        } catch (error) {
-            branchNameError.textContent = 'Error checking branch name';
-            branchNameError.style.display = 'block';
-            branchNameInput.classList.add('error');
-            isBranchNameValid = false;
-        }
-        
-        updateSubmitButton();
-    }
-
-    // Update submit button state
-    function updateSubmitButton() {
-        submitBtn.disabled = !isBranchNameValid || !branchNameInput.value.trim() || !document.getElementById('location').value.trim();
-    }
-
-    // Debounce function to limit API calls
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    // Validate branch name on input
-    const debouncedValidate = debounce(validateBranchName, 500);
-    branchNameInput.addEventListener('input', (e) => {
-        debouncedValidate(e.target.value);
-    });
-
-    // Validate location input
-    document.getElementById('location').addEventListener('input', updateSubmitButton);
-
-    // Form submission
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await validateBranchName(branchNameInput.value);
-        if (isBranchNameValid && document.getElementById('location').value.trim()) {
-            form.submit();
-        }
-    });
-
-    // Initial validation
-    updateSubmitButton();
 });
 </script>
 

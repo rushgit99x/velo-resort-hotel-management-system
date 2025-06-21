@@ -253,7 +253,7 @@ include 'templates/header.php';
             <?php if (empty($billings)): ?>
                 <p>No additional services added yet.</p>
             <?php else: ?>
-                <h2>Your Billing Details</h2>
+                <br><br><h2>Your Billing Details</h2>
                 <div class="billings__table">
                     <table>
                         <thead>

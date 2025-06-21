@@ -10,8 +10,6 @@ require_once 'db_connect.php';
 
 // Initialize variables
 $success = $error = $edit_room_type = null;
-$csrf_token = bin2hex(random_bytes(32));
-$_SESSION['csrf_token'] = $csrf_token;
 
 // Fetch all room types
 try {
@@ -24,110 +22,98 @@ try {
 
 // Handle create room type
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_room_type'])) {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        $error = "Invalid CSRF token.";
-    } else {
-        $name = sanitize($_POST['room_type_name']);
-        $description = sanitize($_POST['description']);
-        $base_price = floatval($_POST['base_price']);
-        $image_path = sanitize($_POST['image_path']) ?: null;
+    $name = sanitize($_POST['room_type_name']);
+    $description = sanitize($_POST['description']);
+    $base_price = floatval($_POST['base_price']);
+    $image_path = sanitize($_POST['image_path']) ?: null;
 
-        try {
-            // Validate inputs
-            if (empty($name) || strlen($name) < 2) {
-                throw new Exception("Room type name must be at least 2 characters long.");
-            }
-            if ($base_price < 0) {
-                throw new Exception("Base price cannot be negative.");
-            }
-            if ($image_path && !filter_var($image_path, FILTER_VALIDATE_URL) && !file_exists($image_path)) {
-                throw new Exception("Invalid image path or URL.");
-            }
-
-            // Check for duplicate name
-            $stmt = $pdo->prepare("SELECT id FROM room_types WHERE name = ?");
-            $stmt->execute([$name]);
-            if ($stmt->fetch()) {
-                throw new Exception("Room type name already exists.");
-            }
-
-            $stmt = $pdo->prepare("INSERT INTO room_types (name, description, base_price, image_path) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$name, $description, $base_price, $image_path]);
-            $success = "Room type created successfully!";
-            header("Location: create_room_type.php");
-            exit();
-        } catch (Exception $e) {
-            $error = "Error creating room type: " . $e->getMessage();
+    try {
+        // Validate inputs
+        if (empty($name) || strlen($name) < 2) {
+            throw new Exception("Room type name must be at least 2 characters long.");
         }
+        if ($base_price < 0) {
+            throw new Exception("Base price cannot be negative.");
+        }
+        if ($image_path && !filter_var($image_path, FILTER_VALIDATE_URL) && !file_exists($image_path)) {
+            throw new Exception("Invalid image path or URL.");
+        }
+
+        // Check for duplicate name
+        $stmt = $pdo->prepare("SELECT id FROM room_types WHERE name = ?");
+        $stmt->execute([$name]);
+        if ($stmt->fetch()) {
+            throw new Exception("Room type name already exists.");
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO room_types (name, description, base_price, image_path) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $description, $base_price, $image_path]);
+        $success = "Room type created successfully!";
+        header("Location: create_room_type.php");
+        exit();
+    } catch (Exception $e) {
+        $error = "Error creating room type: " . $e->getMessage();
     }
 }
 
 // Handle update room type
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_room_type'])) {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        $error = "Invalid CSRF token.";
-    } else {
-        $id = (int)$_POST['room_type_id'];
-        $name = sanitize($_POST['room_type_name']);
-        $description = sanitize($_POST['description']);
-        $base_price = floatval($_POST['base_price']);
-        $image_path = sanitize($_POST['image_path']) ?: null;
+    $id = (int)$_POST['room_type_id'];
+    $name = sanitize($_POST['room_type_name']);
+    $description = sanitize($_POST['description']);
+    $base_price = floatval($_POST['base_price']);
+    $image_path = sanitize($_POST['image_path']) ?: null;
 
-        try {
-            // Validate inputs
-            if (empty($name) || strlen($name) < 2) {
-                throw new Exception("Room type name must be at least 2 characters long.");
-            }
-            if ($base_price < 0) {
-                throw new Exception("Base price cannot be negative.");
-            }
-            if ($image_path && !filter_var($image_path, FILTER_VALIDATE_URL) && !file_exists($image_path)) {
-                throw new Exception("Invalid image path or URL.");
-            }
-
-            // Check for duplicate name (excluding current room type)
-            $stmt = $pdo->prepare("SELECT id FROM room_types WHERE name = ? AND id != ?");
-            $stmt->execute([$name, $id]);
-            if ($stmt->fetch()) {
-                throw new Exception("Room type name already exists.");
-            }
-
-            $stmt = $pdo->prepare("UPDATE room_types SET name = ?, description = ?, base_price = ?, image_path = ? WHERE id = ?");
-            $stmt->execute([$name, $description, $base_price, $image_path, $id]);
-            $success = "Room type updated successfully!";
-            header("Location: create_room_type.php");
-            exit();
-        } catch (Exception $e) {
-            $error = "Error updating room type: " . $e->getMessage();
+    try {
+        // Validate inputs
+        if (empty($name) || strlen($name) < 2) {
+            throw new Exception("Room type name must be at least 2 characters long.");
         }
+        if ($base_price < 0) {
+            throw new Exception("Base price cannot be negative.");
+        }
+        if ($image_path && !filter_var($image_path, FILTER_VALIDATE_URL) && !file_exists($image_path)) {
+            throw new Exception("Invalid image path or URL.");
+        }
+
+        // Check for duplicate name (excluding current room type)
+        $stmt = $pdo->prepare("SELECT id FROM room_types WHERE name = ? AND id != ?");
+        $stmt->execute([$name, $id]);
+        if ($stmt->fetch()) {
+            throw new Exception("Room type name already exists.");
+        }
+
+        $stmt = $pdo->prepare("UPDATE room_types SET name = ?, description = ?, base_price = ?, image_path = ? WHERE id = ?");
+        $stmt->execute([$name, $description, $base_price, $image_path, $id]);
+        $success = "Room type updated successfully!";
+        header("Location: create_room_type.php");
+        exit();
+    } catch (Exception $e) {
+        $error = "Error updating room type: " . $e->getMessage();
     }
 }
 
 // Handle delete room type
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_room_type'])) {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        $error = "Invalid CSRF token.";
-    } else {
-        $id = (int)$_POST['room_type_id'];
+    $id = (int)$_POST['room_type_id'];
 
-        try {
-            // Check for dependencies
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM rooms WHERE room_type_id = ?");
-            $stmt->execute([$id]);
-            $room_count = $stmt->fetchColumn();
+    try {
+        // Check for dependencies
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM rooms WHERE room_type_id = ?");
+        $stmt->execute([$id]);
+        $room_count = $stmt->fetchColumn();
 
-            if ($room_count > 0) {
-                throw new Exception("Cannot delete room type because it is associated with $room_count room(s).");
-            }
-
-            $stmt = $pdo->prepare("DELETE FROM room_types WHERE id = ?");
-            $stmt->execute([$id]);
-            $success = "Room type deleted successfully!";
-            header("Location: create_room_type.php");
-            exit();
-        } catch (Exception $e) {
-            $error = "Error deleting room type: " . $e->getMessage();
+        if ($room_count > 0) {
+            throw new Exception("Cannot delete room type because it is associated with $room_count room(s).");
         }
+
+        $stmt = $pdo->prepare("DELETE FROM room_types WHERE id = ?");
+        $stmt->execute([$id]);
+        $success = "Room type deleted successfully!";
+        header("Location: create_room_type.php");
+        exit();
+    } catch (Exception $e) {
+        $error = "Error deleting room type: " . $e->getMessage();
     }
 }
 
@@ -215,7 +201,6 @@ include 'templates/header.php';
             <h2 class="section__subheader"><?php echo isset($edit_room_type) ? 'Edit Room Type' : 'Create New Room Type'; ?></h2>
             <div class="form__container">
                 <form method="POST" class="admin__form" id="roomTypeForm">
-                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                     <?php if (isset($edit_room_type)): ?>
                         <input type="hidden" name="room_type_id" value="<?php echo htmlspecialchars($edit_room_type['id']); ?>">
                     <?php endif; ?>
@@ -281,7 +266,6 @@ include 'templates/header.php';
                                                 <i class="ri-edit-line me-1"></i>Edit
                                             </a>
                                             <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this room type?');">
-                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                                                 <input type="hidden" name="room_type_id" value="<?php echo $room_type['id']; ?>">
                                                 <button type="submit" name="delete_room_type" class="btn btn--small btn--danger">
                                                     <i class="ri-delete-bin-line me-1"></i>Delete

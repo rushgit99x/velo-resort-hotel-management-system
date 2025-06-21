@@ -187,7 +187,7 @@ include 'templates/header.php';
                 <li><a href="#about">About</a></li>
                 <li><a href="#service">Services</a></li>
                 <li><a href="#explore">Explore</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="contact.php">Contact</a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <?php if ($_SESSION['role'] == 'super_admin'): ?>
                         <li><a href="admin_dashboard.php">Admin Panel</a></li>

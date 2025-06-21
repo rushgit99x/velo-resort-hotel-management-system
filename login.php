@@ -320,6 +320,50 @@ if (isset($_GET['logout'])) {
         border-color: #d1d5db;
     }
 
+    /* Password input wrapper for toggle button */
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-wrapper .form-input {
+        padding-right: 3rem;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        color: #6b7280;
+        transition: all 0.3s ease;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .password-toggle:hover {
+        color: #e91e63;
+        background: rgba(233, 30, 99, 0.1);
+    }
+
+    .password-toggle:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.2);
+    }
+
+    .password-toggle svg {
+        width: 18px;
+        height: 18px;
+        transition: all 0.2s ease;
+    }
+
     .login-button {
         width: 100%;
         padding: 1rem;
@@ -418,6 +462,10 @@ if (isset($_GET['logout'])) {
         
         .form-input {
             padding: 0.75rem;
+        }
+        
+        .password-wrapper .form-input {
+            padding-right: 2.75rem;
         }
         
         .login-button {
@@ -549,8 +597,16 @@ if (isset($_GET['logout'])) {
                 </svg>
                 Password
             </label>
-            <input type="password" id="password" name="password" class="form-input" required 
-                   placeholder="Enter your password">
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" class="form-input" required 
+                       placeholder="Enter your password">
+                <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Toggle password visibility">
+                    <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         
         <button type="submit" name="login" class="login-button" id="loginBtn">
@@ -569,6 +625,26 @@ if (isset($_GET['logout'])) {
 </div>
 
 <script>
+// Password toggle functionality
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.innerHTML = `
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+        `;
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+        `;
+    }
+}
+
 // Add loading state on form submission
 document.getElementById('loginForm').addEventListener('submit', function() {
     const loginBtn = document.getElementById('loginBtn');
@@ -606,6 +682,14 @@ adjustForScreenHeight();
 if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
     document.getElementById('loginForm').reset();
 }
+
+// Keyboard accessibility for password toggle
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.classList.contains('password-toggle')) {
+        e.preventDefault();
+        togglePassword();
+    }
+});
 </script>
 
 </body>
